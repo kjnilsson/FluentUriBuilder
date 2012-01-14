@@ -6,13 +6,30 @@ using System.Text;
 using FluentUri;
 
 using Xunit;
+using Xunit.Extensions;
 
 namespace FluentUriBuilderTest
 {
     public class FluentUriBuilderTest
     {
+        [Theory]
+        [InlineData("http://thehost")]
+        [InlineData("http://thehost:9898")]
+        [InlineData("http://thehost#frag")]
+        [InlineData("http://thehost?que=val&que=val2")]
+        [InlineData("http://thehost?que=val&que=val2#frag")]
+        [InlineData("http://thehost:9898/thepath/path2")]
+        [InlineData("http://thehost:9898/thepath/path2?que=val&que=val2")]
+        [InlineData("http://thehost:9898/thepath/path2?que=val&que=val2#frag")]
+
+        public void New_ShouldProduceSameUriThatWasGiven(string uri)
+        {
+            var result = FluentUriBuilder.New(uri).Build();
+            Assert.Equal(new Uri(uri), result);
+        }
+
         [Fact]
-        public void TestNew_ShouldBuildBasicUriFromStringInput()
+        public void New_ShouldBuildBasicUriFromStringInput()
         {
             var result = FluentUriBuilder.New("http://thehost").Build();
 
@@ -21,7 +38,7 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void TestNew_ShouldBuildUriFromStringInputWithPath()
+        public void New_ShouldBuildUriFromStringInputWithPath()
         {
             var result = FluentUriBuilder.New("http://thehost/thepath").Build();
 
@@ -31,27 +48,27 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void TestNew_ShouldBuildUriFromStringInputWithPathAndQueryString()
+        public void New_ShouldBuildUriFromStringInputWithPathAndQueryString()
         {
             var result = FluentUriBuilder.New("http://thehost/thepath?id=54").Build();
 
             Assert.Equal("thehost", result.Host);
             Assert.Equal("http", result.Scheme);
-            Assert.Equal("http://thehost/thepath", result.ToString());
+            Assert.Equal("http://thehost/thepath?id=54", result.ToString());
         }
 
         [Fact]
-        public void TestNew_ShouldBuildUriFromStringInputWithPathAndPortAndQueryString()
+        public void New_ShouldBuildUriFromStringInputWithPathAndPortAndQueryString()
         {
             var result = FluentUriBuilder.New("http://thehost:8945/thepath?id=54").Build();
 
             Assert.Equal("thehost", result.Host);
             Assert.Equal("http", result.Scheme);
-            Assert.Equal("http://thehost:8945/thepath", result.ToString());
+            Assert.Equal("http://thehost:8945/thepath?id=54", result.ToString());
         }
 
         [Fact]
-        public void TestWithPath_ShouldAddPathToBasicUri()
+        public void WithPath_ShouldAddPathToBasicUri()
         {
             var result = FluentUriBuilder.New("http://host")
                 .WithPath("mypath/hello")
@@ -61,7 +78,7 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void TestWithPath_ShouldAddPathToUriWithPath()
+        public void WithPath_ShouldAddPathToUriWithPath()
         {
             var result = FluentUriBuilder.New("http://host")
                 .WithPath("mypath/hello")
@@ -71,7 +88,7 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void TestWithScheme_ShouldChangeScheme()
+        public void WithScheme_ShouldChangeScheme()
         {
             var result = FluentUriBuilder.New("http://host")
                 .WithScheme("test")
@@ -81,7 +98,7 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void TestWithPort_ShouldSetPort()
+        public void WithPort_ShouldSetPort()
         {
             var result = FluentUriBuilder.New("http://host/path")
                 .WithPort(1234)
@@ -89,6 +106,114 @@ namespace FluentUriBuilderTest
 
             Assert.Equal(1234, result.Port);
             Assert.Equal("http://host:1234/path", result.ToString());
+        }
+
+        [Fact]
+        public void WithPathSegment_ShouldSetSegmentForTemplate()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/{seg1}")
+                .WithSegment("seg1", "segmentone")
+                .Build();
+
+            Assert.Equal("http://host:1234/segmentone", result.ToString());
+        }
+
+        [Fact]
+        public void WithPathSegment_ShouldReplaceSegmentForTemplate()
+        {
+            var builder = FluentUriBuilder.New("http://host:1234/{seg1}")
+                .WithSegment("seg1", "segmentone");
+            var result = builder.Build();
+
+            Assert.Equal("http://host:1234/segmentone", result.ToString());
+
+            result = builder.WithSegment("seg1", "segmentnew").Build();
+
+            Assert.Equal("http://host:1234/segmentnew", result.ToString());
+        }
+
+        [Fact]
+        public void WithPathTemplate_ShouldAddTemplateToPath()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/{seg1}")
+                .WithSegment("seg1", "segone")
+                .AddPathTemplate("{newseg}/someseg")
+                .WithSegment("newseg", "test")
+                .Build();
+
+            Assert.Equal("http://host:1234/segone/test/someseg", result.ToString()); 
+        }
+
+        [Fact]
+        public void WithFragment_ShouldSetFragment()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .WithFragment("frag")
+                .Build().ToString();
+
+            Assert.Equal("http://host:1234/test#frag", result);
+        }
+
+        [Fact]
+        public void WithFragment_ShouldSetPreExistingFragment()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test#frag")
+                .Build().ToString();
+
+            Assert.Equal("http://host:1234/test#frag", result);
+        }
+
+        [Fact]
+        public void AddQuery_ShouldAddQueryParameter()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .AddQuery("myparam", "myvalue")
+                .Build().ToString();
+
+            Assert.Equal("http://host:1234/test?myparam=myvalue", result);
+        }
+
+        [Fact]
+        public void AddQuery_ShouldAddMultipleQueryParameter()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .AddQuery("myparam", "myvalue")
+                .AddQuery("myparam2", "myvalue2")
+                .Build().ToString();
+
+            Assert.Equal("http://host:1234/test?myparam=myvalue&myparam2=myvalue2", result);
+        }
+
+        [Fact]
+        public void AddPathTemplate_ShouldHandleSlashesCorrectlyWhenTemplateBeginsWithSlash()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .AddPathTemplate("/{test}/whatever/{test2}")
+                .WithSegment("test", "karl")
+                .WithSegment("test2", "karl2")
+                .Build();
+
+            Assert.Equal(new Uri("http://host:1234/test/karl/whatever/karl2"), result);
+        }
+
+        [Fact]
+        public void Explore()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .AddPathTemplate("/{test}/whatever/{test2}")
+                .WithSegment("test", "karl")
+                .WithSegment("test2", "karl2")
+                .Build();
+
+            Assert.Equal(new Uri("http://host:1234/test/karl/whatever/karl2"), result);
+        }
+
+        [Fact]
+        public void WithPathTemplate_ShouldThrowIfGivenEmptyString()
+        {
+            Assert.Throws<ArgumentException>(() => FluentUriBuilder.New("http://host:1234/test")
+                .AddPathTemplate(string.Empty));
+                
         }
     }
 }
