@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 
 namespace FluentUri
 {
+    [ContractClass(typeof(FluentUriBuilderContract))]
     public interface IFluentUriBuilder
     {
         Uri Build();

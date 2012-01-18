@@ -17,7 +17,7 @@ namespace FluentUri
 
         private string host;
 
-        private int port;
+        private int port = 80;
 
         private string fragment;
 
@@ -27,6 +27,8 @@ namespace FluentUri
         
         protected FluentUriBuilder(Uri uri)
         {
+            Contract.Requires(uri.Port > 0);
+
             this.uri = uri;
         
             this.port = uri.Port;
@@ -38,21 +40,24 @@ namespace FluentUri
             this.query = new StringBuilder(string.IsNullOrEmpty(uri.Query) ? "?" : uri.Query);
         }
 
+        [ContractInvariantMethod]
+        private void Invariant()
+        {
+            Contract.Invariant(host != null);
+            Contract.Invariant(port > 0);
+        }
+
         /// <summary>
-        /// Factory method to create new Builder
+        /// Factory method to create new Fluent Uri Builder
         /// Use for {segment} for uri templates that can be replaced sing WithSegment
         /// </summary>
         /// <param name="uri"></param>
         /// <returns>a Fluent Uri Builder</returns>
         public static IFluentUriBuilder New(string uri)
         {
+            Contract.Requires(!string.IsNullOrEmpty(uri));
             return new FluentUriBuilder(new Uri(uri));
         }
-
-        //public static IFluentUriBuilder New(string uri)
-        //{
-        //    return new FluentUriBuilder(new Uri(uri));
-        //}
 
         public Uri Build()
         {
@@ -109,8 +114,7 @@ namespace FluentUri
 
         public IFluentUriBuilder AddPathTemplate(string pathTemplate)
         {
-            Contract.Requires<ArgumentException>(string.IsNullOrEmpty(pathTemplate), "pathTemplate parameter cannot be null or empty");
-
+            // do more validations on the format of the path template - regex
             AppendSlashToPathIfRequired(pathTemplate);
 
             path.Append(pathTemplate);
@@ -118,10 +122,14 @@ namespace FluentUri
             return this;
         }
 
+        /// <summary>
+        /// Appends or replaces the uri fragment
+        /// </summary>
+        /// <param name="fragment">the frament to append (do not include #)</param>
+        /// <returns>The Fluent UriBuilder instance</returns>
         public IFluentUriBuilder WithFragment(string fragment)
         {
             this.fragment = fragment;
-
             return this;
         }
 
@@ -137,20 +145,18 @@ namespace FluentUri
             return this;
         }
 
+        public IFluentUriBuilder WithHost(string host)
+        {
+            this.host = host;
+            return this;
+        }
+
         private void AppendSlashToPathIfRequired(string pathTemplate)
         {
-            
             if (path[path.Length - 1] != '/' && !pathTemplate[0].Equals('/'))
             {
                 path.Append('/');
             }
-        }
-
-
-
-        public IFluentUriBuilder WithHost(string host)
-        {
-            return this;
         }
     }
 }

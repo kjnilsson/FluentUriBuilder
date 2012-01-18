@@ -21,7 +21,6 @@ namespace FluentUriBuilderTest
         [InlineData("http://thehost:9898/thepath/path2")]
         [InlineData("http://thehost:9898/thepath/path2?que=val&que=val2")]
         [InlineData("http://thehost:9898/thepath/path2?que=val&que=val2#frag")]
-
         public void New_ShouldProduceSameUriThatWasGiven(string uri)
         {
             var result = FluentUriBuilder.New(uri).Build();
@@ -209,11 +208,39 @@ namespace FluentUriBuilderTest
         }
 
         [Fact]
-        public void WithPathTemplate_ShouldThrowIfGivenEmptyString()
+        public void WithHost_ShouldUpdateHost()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .WithHost("newhost").Build();
+
+            Assert.Equal(new Uri("http://newhost:1234/test"), result); 
+        }
+
+        [Fact]
+        public void AddPathTemplate_ShouldThrowIfGivenEmptyString()
         {
             Assert.Throws<ArgumentException>(() => FluentUriBuilder.New("http://host:1234/test")
                 .AddPathTemplate(string.Empty));
-                
+        }
+
+        [Fact]
+        public void WithFragment_ShouldThrowIfGivenEmptyString()
+        {
+            Assert.Throws<ArgumentException>(() => FluentUriBuilder.New("http://host:1234/test")
+                .WithFragment(string.Empty));
+        }
+
+        [Fact]
+        public void Host_CannotPassNullAsUriString()
+        {
+            try
+            {
+                FluentUriBuilder.New("http://test").WithHost(null);
+            }
+            catch (Exception e)
+            {
+                Assert.Equal("ContractException", e.GetType().Name);
+            }
         }
     }
 }
