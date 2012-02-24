@@ -5,9 +5,9 @@ using System.Text;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 
-namespace FluentUri
+namespace FluentUriUtility
 {
-    public class FluentUriBuilder : IFluentUriBuilder
+    public sealed class FluentUriBuilder// : IFluentUriBuilder
     {
         private Uri uri;
 
@@ -27,8 +27,6 @@ namespace FluentUri
         
         protected FluentUriBuilder(Uri uri)
         {
-            Contract.Requires(uri.Port > 0);
-
             this.uri = uri;
         
             this.port = uri.Port;
@@ -40,23 +38,20 @@ namespace FluentUri
             this.query = new StringBuilder(string.IsNullOrEmpty(uri.Query) ? "?" : uri.Query);
         }
 
-        [ContractInvariantMethod]
-        private void Invariant()
-        {
-            Contract.Invariant(host != null);
-            Contract.Invariant(port > 0);
-        }
-
         /// <summary>
         /// Factory method to create new Fluent Uri Builder
         /// Use for {segment} for uri templates that can be replaced sing WithSegment
         /// </summary>
         /// <param name="uri"></param>
         /// <returns>a Fluent Uri Builder</returns>
-        public static IFluentUriBuilder New(string uri)
+        public static FluentUriBuilder New(string uri)
         {
-            Contract.Requires(!string.IsNullOrEmpty(uri));
             return new FluentUriBuilder(new Uri(uri));
+        }
+
+        public static FluentUriBuilder New(Uri uri)
+        {
+            return new FluentUriBuilder(uri);
         }
 
         public Uri Build()
@@ -76,29 +71,33 @@ namespace FluentUri
             return builder.Uri;
         }
 
-        public IFluentUriBuilder WithPath(string path)
+        public FluentUriBuilder WithPath(string path)
         {
+            EnsureValidString(path, "path");
+
             this.path.Clear();
             this.path.Append(path);
 
             return this;
         }
 
-        public IFluentUriBuilder WithScheme(string scheme)
+        public FluentUriBuilder WithScheme(string scheme)
         {
+            EnsureValidString(scheme, "scheme");
+
             this.scheme = scheme;
 
             return this;
         }
 
-        public IFluentUriBuilder WithPort(int port)
+        public FluentUriBuilder WithPort(int port)
         {
             this.port = port;
 
             return this;
         }
 
-        public IFluentUriBuilder WithSegment(string segmentIdentifier, string segmentValue)
+        public FluentUriBuilder WithSegment(string segmentIdentifier, string segmentValue)
         {
             if(segments.ContainsKey(segmentIdentifier))
             {
@@ -112,8 +111,9 @@ namespace FluentUri
             return this;
         }
 
-        public IFluentUriBuilder AddPathTemplate(string pathTemplate)
+        public FluentUriBuilder AddPathTemplate(string pathTemplate)
         {
+            EnsureValidString(pathTemplate, "pathTemplate");
             // do more validations on the format of the path template - regex
             AppendSlashToPathIfRequired(pathTemplate);
 
@@ -127,26 +127,57 @@ namespace FluentUri
         /// </summary>
         /// <param name="fragment">the frament to append (do not include #)</param>
         /// <returns>The Fluent UriBuilder instance</returns>
-        public IFluentUriBuilder WithFragment(string fragment)
+        public FluentUriBuilder WithFragment(string fragment)
         {
+            EnsureValidString(fragment, "fragment");
+
             this.fragment = fragment;
             return this;
         }
 
-        public IFluentUriBuilder AddQuery(string parameter, string value)
+        public FluentUriBuilder AddQuery(string parameter, string value)
         {
-            if (query[query.Length -1] != '?')
-            {
-                query.Append("&");
-            }
-            
-            this.query.Append(string.Format("{0}={1}", parameter, value));
-            
+            EnsureValidString(parameter, "parameter");
+            EnsureValidString(value, "value");
+
+            AddQuery(string.Format("{0}={1}", parameter, value));
+
             return this;
         }
 
-        public IFluentUriBuilder WithHost(string host)
+        public FluentUriBuilder AddQueries(IEnumerable<KeyValuePair<string, string>> values)
         {
+            foreach (var value in values)
+            {
+                AddQuery(value.Key, value.Value);
+            }
+
+            return this;
+        }
+
+        public FluentUriBuilder AddQueries(IEnumerable<string> queryParameters)
+        {
+            foreach (var query in queryParameters)
+            {
+                AddQuery(query);
+            }
+
+            return this;
+        }
+
+        private void AddQuery(string q)
+        {
+            if (query[query.Length - 1] != '?')
+            {
+                query.Append("&");
+            }
+
+            this.query.Append(q);
+        }
+
+        public FluentUriBuilder WithHost(string host)
+        {
+            EnsureValidString(host, "host");
             this.host = host;
             return this;
         }
@@ -156,6 +187,14 @@ namespace FluentUri
             if (path[path.Length - 1] != '/' && !pathTemplate[0].Equals('/'))
             {
                 path.Append('/');
+            }
+        }
+
+        private static void EnsureValidString(string fragment, string field)
+        {
+            if (string.IsNullOrEmpty(fragment))
+            {
+                throw new ArgumentException("{0} is null or empty!", field);
             }
         }
     }

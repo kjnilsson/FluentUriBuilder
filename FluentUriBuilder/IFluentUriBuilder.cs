@@ -5,9 +5,8 @@ using System.Text;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 
-namespace FluentUri
+namespace FluentUriUtility
 {
-    [ContractClass(typeof(FluentUriBuilderContract))]
     public interface IFluentUriBuilder
     {
         Uri Build();
@@ -27,5 +26,7 @@ namespace FluentUri
         IFluentUriBuilder AddQuery(string parameter, string value);
 
         IFluentUriBuilder WithHost(string host);
+
+        IFluentUriBuilder AddQueries(string[] p);
     }
 }

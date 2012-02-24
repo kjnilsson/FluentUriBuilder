@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using FluentUri;
-
 using Xunit;
 using Xunit.Extensions;
+using FluentUriUtility;
 
 namespace FluentUriBuilderTest
 {
@@ -241,6 +240,22 @@ namespace FluentUriBuilderTest
             {
                 Assert.Equal("ContractException", e.GetType().Name);
             }
+        }
+
+        [Fact]
+        public void WithQueries_ShouldAddMultipleQueryParamerters()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test").AddQueries(new[] { "what=hey", "no=yes" }).Build();
+            Assert.Equal(new Uri("http://host:1234/test?what=hey&no=yes"), result);
+        }
+
+        [Fact]
+        public void WithQueries_ShouldAddMultipleQueryParamerters2()
+        {
+            var result = FluentUriBuilder.New("http://host:1234/test")
+                .AddQueries(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("what", "hey"), new KeyValuePair<string, string>( "no", "yes" ) })
+                .Build();
+            Assert.Equal(new Uri("http://host:1234/test?what=hey&no=yes"), result);
         }
     }
 }

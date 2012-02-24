@@ -5,9 +5,9 @@ using System.Text;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 
-namespace FluentUri
+
+namespace FluentUriUtility
 {
-    [ContractClassFor(typeof(IFluentUriBuilder))]
     internal abstract class FluentUriBuilderContract : IFluentUriBuilder
     {
         public Uri Build()
@@ -59,6 +59,12 @@ namespace FluentUri
         {
             Contract.Requires(!string.IsNullOrEmpty(host));
             return null;
+        }
+
+
+        public IFluentUriBuilder AddQueries(string[] p)
+        {
+            throw new NotImplementedException();
         }
     }
 }

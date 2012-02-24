@@ -53,9 +53,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FluentUriBuilder\FluentUriBuilder.csproj">
+    <ProjectReference Include="..\FluentUriBuilder\FluentUriUtility.csproj">
       <Project>{450DBBD2-29AA-40B3-9259-F62576C92793}</Project>
-      <Name>FluentUriBuilder</Name>
+      <Name>FluentUriUtility</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

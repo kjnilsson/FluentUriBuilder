@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentUriBuilder", "FluentUriBuilder\FluentUriBuilder.csproj", "{450DBBD2-29AA-40B3-9259-F62576C92793}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentUriUtility", "FluentUriBuilder\FluentUriUtility.csproj", "{450DBBD2-29AA-40B3-9259-F62576C92793}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentUriBuilder.Test", "FluentUriBuilder.Test\FluentUriBuilder.Test.csproj", "{C9453D9E-412B-4305-9C4B-4367D8321F14}"
 EndProject
